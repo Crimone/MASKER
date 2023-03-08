@@ -51,10 +51,10 @@ python train.py --dataset review --split_ratio 0.25 --seed 0 \
 
 Train a keyword biased model. Need to specify the `attn_model_path` for attention keywords.
 ```
-python train.py --dataset review --split_ratio 0.25 --seed 0 \
+python train.py --dataset sst2 --split_ratio 0.25 --seed 0 \
     --train_type base --use_biased_dataset \
     --backbone bert --classifier_type softmax --optimizer adam_ood \
-    --attn_model_path review_bert-base-uncased_sub_0.25_seed_0.model
+    --attn_model_path sst2_bert-base-uncased_sub_0.25_seed_0.model
 ```
 
 Train a residual ensemble [1,2] model. Need to specify the `biased_model_path`.
@@ -72,11 +72,11 @@ python train.py --dataset review --split_ratio 0.25 --seed 0 \
 
 Train a MASKER model. Need to specify the `attn_model_path` for attention keywords.
 ```
-python train.py --dataset review --split_ratio 0.25 --seed 0 \
+python train.py --dataset sst2 --split_ratio 0.25 --seed 0 \
     --train_type masker \
-    --backbone bert --classifier_type sigmoid --optimizer adam_ood \
+    --backbone bert --classifier_type sigmoid --optimizer adam_masker \
     --keyword_type attention --lambda_ssl 0.001 --lambda_ent 0.0001 \
-    --attn_model_path review_bert-base-uncased_sub_0.25_seed_0.model
+    --attn_model_path sst2_bert-base-uncased_sub_0.25_seed_0.model
 ```
 
 

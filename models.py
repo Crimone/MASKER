@@ -4,6 +4,7 @@ import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+
 def load_backbone(name, output_attentions=False):
     if name == 'bert':
         from transformers import BertModel, BertTokenizer
@@ -58,6 +59,9 @@ class BaseNet(nn.Module):
             return out_cls
 
 
+
+
+
 class MaskerNet(nn.Module):
     """ Makser network """
 
@@ -65,12 +69,18 @@ class MaskerNet(nn.Module):
         super(MaskerNet, self).__init__()
         self.backbone = backbone
         self.backbone_name = backbone_name
+        # dropout，随机丢弃一部分神经元
         self.dropout = nn.Dropout(0.1)
+        # n_classes
         self.n_classes = n_classes
         self.vocab_size = vocab_size
 
         self.dense = nn.Linear(768,768)
+
+        # 分类层，n_classes为最后分类的时候输出的分类种类
         self.net_cls = nn.Linear(768, n_classes)  # classification layer
+
+        # 自监督层
         self.net_ssl = nn.Sequential(  # self-supervision layer
             nn.Linear(768, 768),
             nn.ReLU(),
@@ -79,13 +89,17 @@ class MaskerNet(nn.Module):
         )
 
     def forward(self, x, training=False):
+
         if training:  # training mode
             x_orig, x_mask, x_ood = x.chunk(3, dim=1)  # (original, masked, outlier)
+
             if self.backbone_name in ['bert', 'albert']:
                 attention_mask = (x_orig > 0).float()
+
             elif self.backbone_name in ['roberta']:
                 attention_mask = (x_orig != 1).float()
-
+            
+            #out_cls是一个一维数组，内容是分别属于某个分类的概率，roberta没有池化层，所以人工跑了一个
             if self.backbone_name in ['bert', 'albert']:
                 out_cls = self.backbone(x_orig, attention_mask)[1]  # pooled feature
                 out_cls = self.dropout(out_cls)
@@ -93,12 +107,14 @@ class MaskerNet(nn.Module):
             elif self.backbone_name in ['roberta']:
                 out = self.backbone(x_orig, attention_mask)[0]
                 out_cls = out[:, 0, :] # take cls token (<s>)
+                #与BertPooler相同
                 out_cls = self.dropout(out_cls)
                 out_cls = self.dense(out_cls)
                 out_cls = torch.tanh(out_cls)
                 out_cls = self.dropout(out_cls)
                 out_cls = self.net_cls(out_cls)
 
+            # out_ssl 用于自监督的输出，仅在训练模式下传递，传入的是masked数据
             out_ssl = self.backbone(x_mask, attention_mask)[0]  # hidden feature
             out_ssl = self.dropout(out_ssl)
             out_ssl = self.net_ssl(out_ssl)  # self-supervision

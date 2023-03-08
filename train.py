@@ -27,8 +27,13 @@ def main():
     else:
         args.batch_size = 16
 
+    '''
+    加载预训练模型
+    '''
+
     print('Loading pre-trained backbone network...')
     backbone, tokenizer = load_backbone(args.backbone)
+
 
     print('Initializing dataset and model...')
     if args.train_type in ['base', 'residual']:

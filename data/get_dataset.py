@@ -57,6 +57,7 @@ def get_biased_dataset(args, data_name, tokenizer, keyword_type, keyword_per_cla
     print('{:d}s elapsed'.format(int(time.time() - start_time)))
     return biased_dataset
 
+
 def get_masked_dataset(args, data_name, tokenizer, keyword_type, keyword_per_class, split_ratio=1.0, seed=0):
 
     dataset = get_base_dataset(data_name, tokenizer, split_ratio, seed)  # base dataset
@@ -79,7 +80,7 @@ def get_masked_dataset(args, data_name, tokenizer, keyword_type, keyword_per_cla
 
     return masked_dataset
 
-
+#确定样本中的keyword
 class Keyword(object):
     def __init__(self, keyword_type, keyword):
         self.keyword_type = keyword_type

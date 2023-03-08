@@ -5,20 +5,29 @@ from training.common import AverageMeter, one_hot, uniform_labels
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+'''
+masker的训练过程
+'''
 
 def train_masker(args, loader, model, optimizer, epoch=0):
     model.train()
+
+    # 是否启用多显卡
 
     if isinstance(model, nn.DataParallel):
         n_classes = model.module.n_classes
     else:
         n_classes = model.n_classes
 
+    
+
     losses = dict()
+    # 对每一批次的loss求平均
     losses['cls'] = AverageMeter()
     losses['ssl'] = AverageMeter()
     losses['ent'] = AverageMeter()
 
+    
     for i, (tokens, labels) in enumerate(loader):
         batch_size = tokens.size(0)
         tokens = tokens.to(device)
@@ -27,6 +36,7 @@ def train_masker(args, loader, model, optimizer, epoch=0):
         labels_ssl = labels[:, :-1]  # self-sup labels (B, K)
         labels_cls = labels[:, -1]  # class labels (B)
 
+        
         out_cls, out_ssl, out_ood = model(tokens, training=True)
 
         # classification loss
@@ -37,14 +47,17 @@ def train_masker(args, loader, model, optimizer, epoch=0):
             out_cls = out_cls.squeeze()
             loss_cls = F.mse_loss(out_cls, labels_cls.float())
         else:
+            #masker训练过程中使用的分类器类型是sigmoid
             labels_cls = one_hot(labels_cls, n_classes=n_classes)
             loss_cls = F.binary_cross_entropy_with_logits(out_cls, labels_cls)
 
         # self-supervision loss
+        # 自监督损失
         out_ssl = out_ssl.permute(0, 2, 1)
         loss_ssl = F.cross_entropy(out_ssl, labels_ssl, ignore_index=-1)  # ignore non-masks (-1)
         loss_ssl = loss_ssl * args.lambda_ssl
 
+        # ood预测，即论文中提到的第二种训练方式
         # outlier regularization loss
         if args.classifier_type!='regression':
             out_ood = F.log_softmax(out_ood, dim=1)  # log-probs

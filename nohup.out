@@ -1,0 +1,42 @@
+Loading pre-trained backbone network...
+Initializing dataset and model...
+Initializing base dataset... (name: sst2)
+Initializing masked dataset... (name: sst2)
+Training model...
+Loading pre-trained backbone network...
+Initializing dataset and model...
+Initializing base dataset... (name: sst2)
+Initializing masked dataset... (name: sst2)
+Training model...
+Traceback (most recent call last):
+  File "train.py", line 109, in <module>
+    main()
+  File "train.py", line 79, in main
+    train_masker(args, train_loader, model, optimizer, epoch)
+  File "/home/Bai/MASKER/MASKER/training/masker.py", line 30, in train_masker
+    out_cls, out_ssl, out_ood = model(tokens, training=True)
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/Bai/MASKER/MASKER/models.py", line 102, in forward
+    out_ssl = self.backbone(x_mask, attention_mask)[0]  # hidden feature
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/transformers/modeling_bert.py", line 734, in forward
+    encoder_attention_mask=encoder_extended_attention_mask,
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/transformers/modeling_bert.py", line 408, in forward
+    hidden_states, attention_mask, head_mask[i], encoder_hidden_states, encoder_attention_mask
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/transformers/modeling_bert.py", line 369, in forward
+    self_attention_outputs = self.attention(hidden_states, attention_mask, head_mask)
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/transformers/modeling_bert.py", line 315, in forward
+    hidden_states, attention_mask, head_mask, encoder_hidden_states, encoder_attention_mask
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/torch/nn/modules/module.py", line 550, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/Bai/miniconda3/envs/masker/lib/python3.7/site-packages/transformers/modeling_bert.py", line 235, in forward
+    attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
+RuntimeError: CUDA out of memory. Tried to allocate 96.00 MiB (GPU 0; 23.70 GiB total capacity; 8.49 GiB already allocated; 96.69 MiB free; 8.55 GiB reserved in total by PyTorch)

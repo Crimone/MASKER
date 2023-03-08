@@ -9,6 +9,7 @@ class MaskedDataset(object):
     def __init__(self, base_dataset, keyword):
         assert base_dataset.train_dataset is not None  # train dataset should be exists
 
+        #载入默认部件
         self.base_dataset = base_dataset
         self.data_name = base_dataset.data_name
         self.base_path = base_dataset.base_path
@@ -71,8 +72,11 @@ def _masked_dataset(tokenizer, dataset, keyword=None,
 
     keyword=keyword_dict
 
+
     CLS_TOKEN = tokenizer.cls_token_id
+
     PAD_TOKEN = tokenizer.pad_token_id
+    #mask_token：模型会尝试去预测的token
     MASK_TOKEN = tokenizer.mask_token_id
 
     random.seed(seed)  # fix random seed
@@ -87,12 +91,13 @@ def _masked_dataset(tokenizer, dataset, keyword=None,
         m_token = token.clone()  # masked token (for self-supervision)
         o_token = token.clone()  # outlier token (for entropy regularization)
         m_label = -torch.ones(token.size(0) + 1).long()  # self-sup labels + class label
-
+        
         for i, tok in enumerate(token):
             if tok == CLS_TOKEN:
                 continue
             elif tok == PAD_TOKEN:
                 break
+            #把keyword替换成mask
             if random.random() < key_mask_ratio:  # randomly mask keywords
                 if (keyword is None) or (tok.item() in keyword):  # random MLM or keyword MLM
                     m_token[i] = MASK_TOKEN
@@ -100,7 +105,8 @@ def _masked_dataset(tokenizer, dataset, keyword=None,
                         m_label[i] = tok  # use full vocabulary
                     else:
                         m_label[i] = keyword[tok.item()] # convert to keyword index
-
+            
+            #把所有不是关键词的词语以90%的概率替换成mask，即论文中提到的第二种方式：把关键词之外的词进行embedding之后，把模型预测结果的概率分布和一个纯均匀的分布进行kl_div，因为在失去上下文的情况下，模型不应该能够输出正确结果（如果输出还是对的就说明模型是依赖关键词的）
             if (keyword is not None) and (tok.item() not in keyword):
                 if random.random() < out_mask_ratio:  # randomly mask non-keywords
                     o_token[i] = MASK_TOKEN
